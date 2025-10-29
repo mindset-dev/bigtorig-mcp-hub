@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-hub
+  namespace: default
+  labels:
+    app: mcp-hub
+    component: mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-hub
+  template:
+    metadata:
+      labels:
+        app: mcp-hub
+    spec:
+      containers:
+      - name: mcp-hub
+        image: bigtorig-mcp-hub:latest
+        imagePullPolicy: Never  # Use local image loaded into KIND
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        # Postgres (Supabase) connection
+        - name: POSTGRES_HOST
+          value: "db"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: mcp-hub-secrets
+              key: postgres-user
+              optional: true
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mcp-hub-secrets
+              key: postgres-password
+              optional: true
+        - name: POSTGRES_DB
+          value: "postgres"
+        
+        # Qdrant connection
+        - name: QDRANT_HOST
+          value: "qdrant"
+        - name: QDRANT_PORT
+          value: "6333"
+        - name: QDRANT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mcp-hub-secrets
+              key: qdrant-api-key
+              optional: true
+        
+        # Neo4j connection
+        - name: NEO4J_URI
+          value: "bolt://neo4j:7687"
+        - name: NEO4J_USER
+          valueFrom:
+            secretKeyRef:
+              name: mcp-hub-secrets
+              key: neo4j-user
+              optional: true
+        - name: NEO4J_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mcp-hub-secrets
+              key: neo4j-password
+              optional: true
+        
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+      
+      restartPolicy: Always
