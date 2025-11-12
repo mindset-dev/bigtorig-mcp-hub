@@ -33,7 +33,53 @@ kubectl get secret mcp-hub-secrets
 
 ## 🚨 Common Issues
 
-### Issue #1: Pods Not Starting (ImagePullBackOff)
+### Issue #1: "Could not find session" Errors with Claude Desktop ⚠️ CRITICAL
+
+**Symptoms:**
+```
+Claude Desktop MCP server appears in list but won't turn on
+OR
+Server connects briefly then fails with errors like:
+"Error POSTing to endpoint (HTTP 404): Could not find session"
+"WARNING:mcp.server.sse:Could not find session for ID: xxx-xxx-xxx"
+```
+
+**Cause:** FastMCP 2.x stores SSE sessions **in memory**. With multiple replicas (2+ pods), load balancing sends requests to different pods that don't have the session.
+
+**Root Cause:**
+1. Claude Desktop connects via `mcp-remote` → Pod 1 (creates session in Pod 1's memory)
+2. Next request gets load-balanced → Pod 2 (doesn't have the session)
+3. Result: HTTP 404 "Could not find session"
+
+**Solution:** Add **ClientIP session affinity** to the service
+
+```bash
+# Edit k8s/service.yaml and add:
+sessionAffinity: ClientIP
+sessionAffinityConfig:
+  clientIP:
+    timeoutSeconds: 10800  # 3 hours
+
+# Apply the change
+kubectl apply -f k8s/service.yaml
+
+# Verify
+kubectl describe service mcp-hub-service | grep -A 2 "Session Affinity"
+# Should show: Session Affinity: ClientIP
+
+# Completely quit and restart Claude Desktop
+```
+
+**Why this works:** Session affinity ensures all requests from the same client IP always go to the same pod, so the session is always found.
+
+**Alternative:** Scale down to 1 replica (loses high availability)
+```bash
+kubectl scale deployment mcp-hub --replicas=1
+```
+
+---
+
+### Issue #2: Pods Not Starting (ImagePullBackOff)
 
 **Symptoms:**
 ```bash

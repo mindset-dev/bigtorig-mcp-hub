@@ -323,6 +323,10 @@ kubectl get svc mcp-hub-service
 - **ClusterIP:** 10.96.81.155 (internal cluster IP)
 - **Port:** 8000 (internal service port)
 - **NodePort:** 30800 (external access port)
+- **Session Affinity:** ClientIP (critical for SSE sessions with multiple replicas)
+- **Affinity Timeout:** 10800 seconds (3 hours)
+
+> **⚠️ Important:** Session affinity is **required** when running multiple replicas with FastMCP 2.x SSE transport. Without it, sessions stored in memory aren't shared between pods, causing "Could not find session" errors.
 
 **Test internal service access:**
 ```bash

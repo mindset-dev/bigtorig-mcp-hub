@@ -135,30 +135,30 @@ Secret: mcp-hub-secrets
 - ✅ Self-healing demonstrated (auto pod replacement)
 - ✅ Horizontal scaling demonstrated (2→3→2 replicas)
 
-**Current Tools:** 2 foundational tools
-1. `health_check` - Server health status
-2. `list_services` - Infrastructure service inventory
+### Phase 2: Database Integration ✅ COMPLETE
 
-### Phase 2: Database Integration 🔄 PLANNED
+**Focus:** Full production database integration with session management
 
-**Focus:** Add production database tools
+**Delivered:**
+- ✅ **ClientIP session affinity** for SSE compatibility (critical fix!)
+- ✅ Connected to `affirmation_app` Postgres database
+- ✅ 16 total tools across 5 categories
+- ✅ Postgres: 5 tools (list/create databases, query, tables, schema)
+- ✅ MySQL: 3 tools (query, tables, schema)
+- ✅ Qdrant: 3 tools (search, collections, info)
+- ✅ Neo4j: 3 tools (query, nodes, relationships)
+- ✅ Foundational: 2 tools (health, services)
 
-**Planned Tools:**
+**🔧 Critical Configuration:**
+The service now uses **ClientIP session affinity** to ensure SSE sessions work correctly with multiple replicas. Without this, FastMCP 2.x sessions stored in memory cause "Could not find session" errors when load balancing between pods.
 
-**Postgres (Supabase):**
-- `postgres_query` - Execute SQL queries
-- `postgres_list_tables` - List database tables
-- `postgres_describe_table` - Table schema inspection
-
-**Qdrant (Vector Database):**
-- `qdrant_search` - Semantic vector search
-- `qdrant_list_collections` - List vector collections
-- `qdrant_collection_info` - Collection metadata
-
-**Neo4j (Graph Database):**
-- `neo4j_query` - Execute Cypher queries
-- `neo4j_list_nodes` - List nodes by label
-- `neo4j_get_relationships` - Explore graph relationships
+```yaml
+# k8s/service.yaml
+sessionAffinity: ClientIP
+sessionAffinityConfig:
+  clientIP:
+    timeoutSeconds: 10800  # 3 hours
+```
 
 ### Phase 3: Advanced Features 🔮 FUTURE
 
@@ -172,52 +172,113 @@ Secret: mcp-hub-secrets
 
 ## 🧰 Available Tools
 
-### 1. health_check
+**Total: 16 tools across 5 categories**
 
-**Purpose:** Verify MCP server health status
+### Foundational Tools (2)
 
-**Returns:**
-```json
-{
-  "status": "healthy",
-  "service": "bigtorig-mcp-hub",
-  "version": "0.1.0",
-  "message": "MCP hub is operational"
-}
-```
+#### 1. health_check
+Check if the MCP server is running and healthy.
 
-**Example Usage:**
-```
-User: "Check if the bigtorig MCP hub is healthy"
-Claude: Uses health_check tool
-Result: Server is operational, version 0.1.0
-```
+**Example:** "Check if the bigtorig MCP hub is healthy"
 
-**Equivalent Command:**
-```bash
-kubectl get pods -l app=mcp-hub
-kubectl logs deployment/mcp-hub --tail=5
-```
+#### 2. list_services
+List all available infrastructure services and their tools.
+
+**Example:** "What services are available in the MCP hub?"
 
 ---
 
-### 2. list_services
+### Postgres Tools (5)
 
-**Purpose:** List available infrastructure services and their status
+Connected to: `affirmation_app` database on Supabase
 
-**Returns:**
-```json
-{
-  "total_services": 3,
-  "services": {
-    "postgres": {
-      "name": "Supabase Postgres",
-      "endpoint": "db:5432",
-      "status": "available",
-      "tools": ["Coming soon"]
-    },
-    "qdrant": {
-      "name": "Qdrant Vector Database",
+#### 3. postgres_list_databases
+List all databases on the Postgres/Supabase server.
+
+**Example:** "List all Postgres databases on my server"
+
+#### 4. postgres_create_database
+Create a new Postgres database (with validation and safety checks).
+
+**Example:** "Create a new database called my_app_db"
+
+#### 5. postgres_query
+Execute SELECT queries against the current database (read-only for safety).
+
+**Example:** "Show me the first 10 rows from the users table"
+
+#### 6. postgres_list_tables
+List all tables in the current database schema.
+
+**Example:** "What tables exist in the affirmation_app database?"
+
+#### 7. postgres_describe_table
+Get detailed schema information for a specific table.
+
+**Example:** "Describe the structure of the affirmations table"
+
+---
+
+### MySQL Tools (3)
+
+Connected to: `maui_app_db` database
+
+#### 8. mysql_query
+Execute SELECT queries against the MySQL database (read-only for safety).
+
+**Example:** "Query the users table in MySQL"
+
+#### 9. mysql_list_tables
+List all tables in the MySQL database.
+
+**Example:** "Show me all tables in the maui database"
+
+#### 10. mysql_describe_table
+Get detailed schema information for a MySQL table.
+
+**Example:** "What's the structure of the products table?"
+
+---
+
+### Qdrant Tools (3)
+
+Vector database for semantic search
+
+#### 11. qdrant_search
+Perform semantic vector search (placeholder - requires embedding model).
+
+**Example:** "Search for similar documents in Qdrant"
+
+#### 12. qdrant_list_collections
+List all vector collections.
+
+**Example:** "What Qdrant collections are available?"
+
+#### 13. qdrant_collection_info
+Get detailed information about a specific collection.
+
+**Example:** "Show me details about the documents collection"
+
+---
+
+### Neo4j Tools (3)
+
+Graph database for relationship queries
+
+#### 14. neo4j_query
+Execute Cypher queries (read-only MATCH operations).
+
+**Example:** "Find all Person nodes in Neo4j"
+
+#### 15. neo4j_list_nodes
+List nodes in the graph database, optionally filtered by label.
+
+**Example:** "List all Movie nodes"
+
+#### 16. neo4j_get_relationships
+Get relationships between nodes in the graph.
+
+**Example:** "Show me relationships for Person nodes"
       "endpoint": "qdrant:6333",
       "status": "available",
       "tools": ["Coming soon"]
