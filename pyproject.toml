@@ -1,6 +1,6 @@
 [project]
 name = "bigtorig-mcp-hub"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP Server for bigtorig.com infrastructure services"
 authors = [
     {name = "Charles Vosloo", email = "voslooc@gmail.com"}
@@ -12,6 +12,7 @@ dependencies = [
     "psycopg2-binary>=2.9.9",
     "qdrant-client>=1.7.0",
     "neo4j>=5.15.0",
+    "mysql-connector-python>=8.3.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
     "python-dotenv>=1.0.0",
