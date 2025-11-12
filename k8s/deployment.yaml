@@ -1,84 +1,125 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mcp-hub
-  namespace: default
-  labels:
-    app: mcp-hub
-    component: mcp-server
-spec:
-  replicas: 2  # Start with 2 replicas for high availability
-  selector:
-    matchLabels:
-      app: mcp-hub
-  template:
-    metadata:
-      labels:
+    name: mcp-hub
+    namespace: default
+    labels:
         app: mcp-hub
-    spec:
-      containers:
-      - name: mcp-hub
-        image: bigtorig-mcp-hub:latest
-        imagePullPolicy: Never  # Use local image loaded into KIND
-        ports:
-        - containerPort: 8000
-          name: http
-          protocol: TCP
-        env:
-        # Postgres (Supabase) connection
-        - name: POSTGRES_HOST
-          value: "db"
-        - name: POSTGRES_PORT
-          value: "5432"
-        - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: mcp-hub-secrets
-              key: postgres-user
-              optional: true
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mcp-hub-secrets
-              key: postgres-password
-              optional: true
-        - name: POSTGRES_DB
-          value: "postgres"
-        
-        # Qdrant connection
-        - name: QDRANT_HOST
-          value: "qdrant"
-        - name: QDRANT_PORT
-          value: "6333"
-        - name: QDRANT_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: mcp-hub-secrets
-              key: qdrant-api-key
-              optional: true
-        
-        # Neo4j connection
-        - name: NEO4J_URI
-          value: "bolt://neo4j:7687"
-        - name: NEO4J_USER
-          valueFrom:
-            secretKeyRef:
-              name: mcp-hub-secrets
-              key: neo4j-user
-              optional: true
-        - name: NEO4J_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mcp-hub-secrets
-              key: neo4j-password
-              optional: true
-        
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-      
-      restartPolicy: Always
+        component: mcp-server
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: mcp-hub
+    template:
+        metadata:
+            labels:
+                app: mcp-hub
+        spec:
+            containers:
+                - name: mcp-hub
+                  image: bigtorig-mcp-hub:latest
+                  imagePullPolicy: Never
+                  ports:
+                      - containerPort: 8000
+                        name: http
+                        protocol: TCP
+                  env:
+                      # Postgres (Supabase) connection
+                      - name: POSTGRES_HOST
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: postgres-host
+                      - name: POSTGRES_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: postgres-port
+                      - name: POSTGRES_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: postgres-user
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: postgres-password
+                      - name: POSTGRES_DB
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: postgres-db
+
+                      # MySQL connection
+                      - name: MYSQL_HOST
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: mysql-host
+                      - name: MYSQL_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: mysql-port
+                      - name: MYSQL_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: mysql-user
+                      - name: MYSQL_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: mysql-password
+                      - name: MYSQL_DATABASE
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: mysql-database
+
+                      # Qdrant connection
+                      - name: QDRANT_HOST
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: qdrant-host
+                      - name: QDRANT_PORT
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: qdrant-port
+                      - name: QDRANT_API_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: qdrant-api-key
+                                optional: true
+
+                      # Neo4j connection
+                      - name: NEO4J_URI
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: neo4j-uri
+                      - name: NEO4J_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: neo4j-user
+                      - name: NEO4J_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: mcp-hub-secrets
+                                key: neo4j-password
+
+                  resources:
+                      requests:
+                          memory: "256Mi"
+                          cpu: "200m"
+                      limits:
+                          memory: "1Gi"
+                          cpu: "1000m"
+
+            restartPolicy: Always
